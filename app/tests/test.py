@@ -3,10 +3,10 @@
 
     This module contains tests match two different files.
 """
-from files.files import get_absolute_file_path
 from typing import List
-from lexer.lexer import Lexer
-from kgrams.kgrams import generate_kgrams, hash_kgrams, generate_windows, generate_fingerprint
+from app.utils.lexer import Lexer
+from app.files.files import get_absolute_file_path
+from app.utils.kgram import generate_kgrams, hash_kgrams, generate_windows, generate_fingerprint
 
 # Store all test files
 file_paths: List[str] = get_absolute_file_path()

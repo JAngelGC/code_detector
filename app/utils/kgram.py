@@ -1,4 +1,3 @@
-from lexer.lexer import Lexer
 from pythonparser.lexer import Token
 from pythonparser import source
 from typing import List
