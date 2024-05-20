@@ -16,6 +16,8 @@ random_fruit = random.choice(list(fruits.keys()))
 
 # Define a function to calculate the square of a number
 def cube(x):
+    print("hello")
+    x = y + 1
     return x ** 3
 
 def h():

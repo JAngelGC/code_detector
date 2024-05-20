@@ -1,1 +1,1 @@
- export PYTHONPATH="/home/angelg/Documents/school/code_detector:${PYTHONPATH}
+ export PYTHONPATH="/home/angelg/Documents/school/code_detector:${PYTHONPATH}"

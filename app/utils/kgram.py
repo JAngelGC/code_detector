@@ -1,8 +1,13 @@
-from pythonparser.lexer import Token
-from pythonparser import source
-from typing import List
+"""
 
-def generate_kgrams(tokens: List[Token], k: int) -> List[List[str]]:
+"""
+
+from app.utils.ast_node import Ast_node
+from typing import List
+import hashlib
+
+
+def generate_kgrams(tokens: List[Ast_node], k: int) -> List[List[str]]:
     """
     Given a list of tokens, it returns its k-grams
 
@@ -15,7 +20,7 @@ def generate_kgrams(tokens: List[Token], k: int) -> List[List[str]]:
     """
     kgrams: List[List[str]] = []
     for i in range(0, len(tokens) - k + 1):
-        kgram = [tokens[t].kind for t in range(i, i + k)]
+        kgram = [tokens[t] for t in range(i, i + k)]
         kgrams.append(kgram)
     
     return kgrams
@@ -43,59 +48,47 @@ def calculate_hash(kgram: List[str], base: int = 256, prime: int = 101):
     return hash_value
 
 
-def hash_kgrams(kgrams: List[List[str]]):
+def hash_kgrams(kgrams: List[List[Ast_node]]) -> List[Ast_node]:
     """
-    For kgrams, it returns a list of its hashes
+    For kgrams, it returns a list of hashed Ast_nodes
 
     Input:
-        kgrams: List of kgrams
+        kgrams: List of list of AST_nodes
     
     Returns:
-        hashed_grams: List of kgram hashes
+        hashed_grams: List of hashed AST_nodes
     """
-    hashed_kgrams: List[int] = []
-    for kg in kgrams:
-        hashed_kgrams.append(calculate_hash(kg))
+    hashed_kgrams: List[Ast_node] = []
+    for kgram in kgrams:
+
+        # To store start and end position of the kgram
+        lineno: int = 0
+        end_lineno: int = 0
+        col_offset: int = 0
+        end_col_offset: int = 0
+
+        # Used to create the hash of the kgram
+        node_names: List[str] = []
+
+        for i in range(len(kgram)):
+            if i == 0:
+                # First element of kgram
+                lineno = kgram[i].lineno
+                end_lineno = kgram[i].end_lineno
+            if i == len(kgram) - 1:
+                # Last element of kgram
+                col_offset = kgram[i].col_offset
+                end_col_offset = kgram[i].end_col_offset
+            
+            node_names.append(kgram[i].hash)
+
+        
+        ngram_str: str = ' '.join(node_names)
+        hash_val: str = hashlib.md5(ngram_str.encode()).hexdigest()
+        node_hash: Ast_node = Ast_node(hash_val, lineno, end_lineno, 
+                                       col_offset, end_col_offset)
+        hashed_kgrams.append(node_hash)
 
     return hashed_kgrams
-
-
-def generate_windows(hashes: List[str], t: int, k: int):
-    """
-    Creates a list of windows of size w
-
-    Input:
-        hashes: List of kgram hashes
-        t: Threshold
-        k: Size of kgrams
-    
-    Returns:
-        windows: List of the windows
-    """
-    w: int = t - k + 1
-    windows: List[List[int]] = []
-    for i in range(0, len(hashes) - w + 1):
-        window: List[int] = [hashes[t] for t in range(i, i + w)]
-        windows.append(window)
-    
-    return windows
-
-
-def generate_fingerprint(windows: List[List[int]]):
-    """
-    Given windows of kgram hashes, it returns its fingerprint
-
-    Input:
-        windows: Windows of kgram hashes
-    
-    Returns:
-        fp: Fingerprint of the document
-    """
-    fp: List[int] = []
-    for window in windows:
-        fp.append(min(window))
-    
-    return fp
-
 
 
