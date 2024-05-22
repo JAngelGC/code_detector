@@ -60,7 +60,7 @@ def generate_windows(hashes: List[dict], t: int, k: int):
     return windows
 
 
-def get_fingerprint(file_path: str):
+def get_fingerprint(file_path: str) -> List[Ast_node]:
     """
     For a file_path that directs to a code, it generates its fingerprint
 
@@ -91,4 +91,19 @@ def get_fingerprint(file_path: str):
     fingerprint: List[Ast_node] = winnowing(hashed_kgrams, k)
 
     return fingerprint
+
+
+def get_hashes_fingerprint(fingerprint: List[Ast_node]) -> List[str]:
+    """
+    Given a fingerprint of Ast_node's, it return an array
+    of its hashes.
+
+    Input:
+        fingerprint: List of Ast_nodes
+    
+    Returns:
+        list_hashes: List of hashes
+    """
+    list_hashes: List[str] = [fp.get_hash() for fp in fingerprint]
+    return list_hashes
     
