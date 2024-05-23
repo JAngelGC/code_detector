@@ -15,7 +15,12 @@ class Ast_node:
         return f"{self.hash}"
     
     def get_position(self):
-        return f"lineno: {self.lineno} / end_lineno: {self.end_lineno} / col_offset: {self.col_offset} / end_col_offset: {self.end_col_offset}"
+        return {
+            "lineno": self.lineno,
+            "end_lineno": self.end_lineno,
+            "col_offset": self.col_offset,
+            "end_col_offset": self.end_col_offset
+        }
 
     @staticmethod
     def get_ast(code: str):

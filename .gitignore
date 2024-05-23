@@ -1,3 +1,7 @@
+# key
+private_key.json
+private*
+
 # Ignore the virtual environment directory
 venv/
 

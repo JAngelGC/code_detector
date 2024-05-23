@@ -80,7 +80,7 @@ def hash_kgrams(kgrams: List[List[Ast_node]]) -> List[Ast_node]:
                 col_offset = kgram[i].col_offset
                 end_col_offset = kgram[i].end_col_offset
             
-            node_names.append(kgram[i].hash)
+            node_names.append(kgram[i].get_hash())
 
         
         ngram_str: str = ' '.join(node_names)

@@ -1,1 +1,14 @@
-GET http://127.0.0.1:5000/api
+# GET http://127.0.0.1:5000/api
+
+
+
+
+
+POST http://127.0.0.1:5000/api HTTP/1.1
+content-type: application/json
+
+{
+    "author": "Angel",
+    "file_name": "my_file.py",
+    "file_url": "https://firebasestorage.googleapis.com/v0/b/code-detector-c5694.appspot.com/o/python_codes%2Ffile_00.py?alt=media&token=974dca42-bb7b-4dfb-8f40-47eccd8e59e4"
+}

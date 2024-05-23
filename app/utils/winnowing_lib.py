@@ -60,7 +60,7 @@ def generate_windows(hashes: List[dict], t: int, k: int):
     return windows
 
 
-def get_fingerprint(file_path: str) -> List[Ast_node]:
+def get_fingerprint(data: str) -> List[Ast_node]:
     """
     For a file_path that directs to a code, it generates its fingerprint
 
@@ -71,8 +71,8 @@ def get_fingerprint(file_path: str) -> List[Ast_node]:
 
     """
     # Read file
-    with open(file_path, "r") as f:
-        data: str = f.read()
+    # with open(file_path, "r") as f:
+    #     data: str = f.read()
 
     # Get ast tree
     ast_tree: ast = Ast_node.get_ast(data)
