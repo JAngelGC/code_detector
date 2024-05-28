@@ -1,17 +1,30 @@
 
 
-# GET http://127.0.0.1:5000/api/8tJVZ47elSBQWYZ944u5/123
+# get submission similarity
+# GET http://127.0.0.1:5000/api/submission/KvuiiiD35noKAZKXd6KB/VOoS30fvywYfrezeXjwl
+
+
+# get all homeworks
+# GET http://127.0.0.1:5000/api/homework
+
+
+# POST http://127.0.0.1:5000/api/homework HTTP/1.1
+# content-type: application/json
+
+# {
+#     "name": "mi tarea de mate"
+# }
 
 
 
 
 
+# POST http://127.0.0.1:5000/api/submission HTTP/1.1
+# content-type: application/json
 
-POST http://127.0.0.1:5000/api HTTP/1.1
-content-type: application/json
-
-{
-    "author": "Angel",
-    "file_name": "my_file.py",
-    "file_url": "https://firebasestorage.googleapis.com/v0/b/code-detector-c5694.appspot.com/o/python_codes%2Ffile_00.py?alt=media&token=974dca42-bb7b-4dfb-8f40-47eccd8e59e4"
-}
+# {
+#     "author": "Angel",
+#     "homework_id": "VOoS30fvywYfrezeXjwl",
+#     "file_name": "my_file.py",
+#     "file_url": "https://firebasestorage.googleapis.com/v0/b/code-detector-c5694.appspot.com/o/python_codes%2Ffile_01.py?alt=media&token=03ff3039-0d1a-4289-a2c2-dde11172f8fe"
+# }
