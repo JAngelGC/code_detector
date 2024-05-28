@@ -8,17 +8,17 @@
 # GET http://127.0.0.1:5000/api/homework
 
 
-# POST http://127.0.0.1:5000/api/homework HTTP/1.1
-# content-type: application/json
+POST http://127.0.0.1:5000/api/homework HTTP/1.1
+content-type: application/json
 
-# {
-#     "name": "mi tarea de mate"
-# }
-
-
+{
+    "name": "tarea Dan Perez"
+}
 
 
 
+
+# Post a submission
 # POST http://127.0.0.1:5000/api/submission HTTP/1.1
 # content-type: application/json
 
