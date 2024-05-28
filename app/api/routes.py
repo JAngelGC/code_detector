@@ -1,17 +1,14 @@
 from flask import Blueprint, jsonify, request, abort
-from app.utils.matcher import match_files, match_fingerprints
-# from app.tests.test import test_similarity
+from app.utils.matcher import match_fingerprints
 from typing import List
 from app.files.files import get_absolute_file_path
 from app.utils.matcher import get_fingerprint
 from app.api.misc import read_python_file
-from app.utils.matcher import match_files
 from app.api.firestore import db
 from app.api.misc import jsonify_fingerprint
 from google.cloud.firestore_v1.base_query import FieldFilter
-
-
-import requests
+import json
+from app.api.interfaces import Submission, KGramPosition, KGramHashMatch, SubmissionSimilarity, SubmissionTable
 
 
 # Store all test files
@@ -21,45 +18,93 @@ file_paths.sort()
 tasks = Blueprint('tasks', __name__)
 
 
-
 HOMEWORK_ID = 123 # NEEDS TO CHANGE
 
 @tasks.route('/<string:submission_id>/<int:homework_id>', methods=['GET'])
 def get_submission_similarity(submission_id, homework_id):
     """
     """
-    # Create a reference to the cities collection
+    # Create a reference to the homework collection
     submissions_ref = db.collection("homework_submission")
 
     submission_ref = submissions_ref.document(submission_id)
-        
-    # Fetch the document
-    submission = submission_ref.get()
 
-    # Create a query against the collection
+    # Fetch the document
+    submission_document = submission_ref.get()
+    temp_dict = submission_document.to_dict()
+    submission_dict: SubmissionTable = SubmissionTable(temp_dict["author"], temp_dict["file_name"],
+                                                       temp_dict["file_url"], temp_dict["fingerprint"])
+    
+    # Create a query against the collection to get all submissions
     query_ref = submissions_ref.where(filter=FieldFilter("homework_id", "==", HOMEWORK_ID))
     query_ref = query_ref.get()
     submissions = [doc for doc in query_ref]
 
+
     max_similarity: int = 0
+    submission_a: Submission = Submission(submission_document.id, submission_dict.file_name, "", submission_dict.author)
+    submission_b = None
+    submission_b_dict = None
+
     for sub in submissions:
-        similarity = match_fingerprints(submission.to_dict()["fingerprint"], sub.to_dict()["fingerprint"])
-        if submission.id == sub.id:
-            print("SAAAAMEEEEEEEEEEEE")
+        temp_dict = sub.to_dict()
+        current_submission: SubmissionTable = SubmissionTable(temp_dict["author"], temp_dict["file_name"],
+                                                       temp_dict["file_url"], temp_dict["fingerprint"])
+        similarity = match_fingerprints(submission_dict.fingerprint, current_submission.fingerprint)
+
+        # Same submission id
+        if submission_document.id == sub.id:
             continue
 
         if similarity > max_similarity:
             max_similarity = similarity
+            submission_b = Submission(sub.id, current_submission.file_name, "", current_submission.author)
+            submission_b_dict = current_submission
+
+    matches: List[KGramHashMatch] = []
+    set_a = set()
+    for fp in submission_dict.fingerprint:
+        if fp["hash"] not in set_a:
+            set_a.add(fp["hash"])
+            kposition = KGramPosition(fp["position"]["lineno"],
+                                      fp["position"]["end_lineno"],
+                                      fp["position"]["col_offset"],
+                                      fp["position"]["end_col_offset"])
+            kgram_match = KGramHashMatch(fp["hash"], [kposition], [])
+            matches.append(kgram_match)
+        else:
+            for match in matches:
+                if fp["hash"] == match.hash:
+                    kposition = KGramPosition(fp["position"]["lineno"],
+                                      fp["position"]["end_lineno"],
+                                      fp["position"]["col_offset"],
+                                      fp["position"]["end_col_offset"])
+                    match.submissionA.append(kposition)
     
-    print(f"----------------------- {max_similarity}")
+    for fp in submission_b_dict.fingerprint:
+        if fp["hash"] not in set_a:
+            set_a.add(fp["hash"])
+            kposition = KGramPosition(fp["position"]["lineno"],
+                                      fp["position"]["end_lineno"],
+                                      fp["position"]["col_offset"],
+                                      fp["position"]["end_col_offset"])
+            kgram_match = KGramHashMatch(fp["hash"], [], [kposition])
+            matches.append(kgram_match)
+        else:
+            for match in matches:
+                if fp["hash"] == match.hash:
+                    kposition = KGramPosition(fp["position"]["lineno"],
+                                      fp["position"]["end_lineno"],
+                                      fp["position"]["col_offset"],
+                                      fp["position"]["end_col_offset"])
+                    match.submissionB.append(kposition)
 
-
-    return jsonify({
-            "message": "Similarity match completed",
-            "similarity": max_similarity
-        }), 201
-    # pass
-
+            
+    submission_similarity = SubmissionSimilarity(submission_document.id, max_similarity, 
+                                                 submission_a, submission_b,
+                                                 matches)
+    
+    return jsonify(submission_similarity.to_json()), 201
 
 # Create a new task
 @tasks.route('/', methods=['POST'])
@@ -70,7 +115,6 @@ def post_homework():
         
         file_content: str = read_python_file(request.json["file_url"])
         fingerprint = get_fingerprint(file_content)
-        
 
         homework_sub = {
             "author": request.json["author"],
@@ -79,7 +123,7 @@ def post_homework():
             "file_url": request.json["file_url"],
             "fingerprint": jsonify_fingerprint(fingerprint)
         }
-    
+
         update_time, hw_ref = db.collection("homework_submission").add(homework_sub)
     
         return jsonify({
@@ -90,7 +134,7 @@ def post_homework():
     except Exception as e:
         return jsonify({"error": str(e)}), 500
 
-    
+
 
 
 
