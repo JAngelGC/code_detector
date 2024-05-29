@@ -1,14 +1,13 @@
 from flask import Blueprint, jsonify, request, abort
-from app.utils.matcher import match_fingerprints
-from typing import List, Dict
-from app.files.files import get_absolute_file_path
-from app.utils.matcher import get_fingerprint
-from app.api.misc import read_python_file
-from app.api.firestore import db
-from app.api.misc import jsonify_fingerprint
 from google.cloud.firestore_v1.base_query import FieldFilter
-import json
-from app.api.interfaces import Submission, KGramPosition, KGramHashMatch, SubmissionSimilarity, SubmissionTable
+from typing import List, Dict
+from app.utils.matcher import match_fingerprints, get_fingerprint
+from app.files.files import get_absolute_file_path
+from flask_cors import CORS
+from app.api.firestore import db
+from app.api.misc import jsonify_fingerprint, read_python_file
+from app.api.interfaces import (Submission, KGramPosition, KGramHashMatch,
+                                SubmissionSimilarity, SubmissionTable)
 
 
 # Store all test files
@@ -16,10 +15,9 @@ file_paths: List[str] = get_absolute_file_path()
 file_paths.sort()
 
 tasks = Blueprint('tasks', __name__)
+CORS(tasks)
 
-
-HOMEWORK_ID = 123 # NEEDS TO CHANGE
-
+# Get homework similarity
 @tasks.route('/submission/<string:submission_id>/<string:homework_id>', methods=['GET'])
 def get_submission_similarity(submission_id, homework_id):
     """
@@ -137,7 +135,6 @@ def post_submission():
     except Exception as e:
         return jsonify({"error": str(e)}), 500
 
-
 # Create a homework
 @tasks.route('/homework', methods=['POST'])
 def post_homework():
@@ -182,4 +179,27 @@ def get_homeworks():
     
     except Exception as e:
         return jsonify({"error": str(e)}), 500
+
+# Get all submissions of a homework
+@tasks.route('/homework/<string:homework_id>/submissions', methods=['GET'])
+def get_homework_submissions(homework_id):
+    """
+    """
+    try:
+        submissions_ref = db.collection("homework_submission")
+        query_ref = submissions_ref.where(filter=FieldFilter("homework_id", "==", homework_id))
+        query_ref = query_ref.get()
+        submissions = [doc.to_dict() for doc in query_ref]
+        # print(submissions)
+
+        return jsonify({
+                    "message": "Homeworks retrieved successfully",
+                    "homeworks": submissions
+                }), 201
+    
+    except Exception as e:
+        return jsonify({"error": str(e)}), 500
+
+
+
 

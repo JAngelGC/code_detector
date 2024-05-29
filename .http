@@ -8,12 +8,12 @@
 # GET http://127.0.0.1:5000/api/homework
 
 
-POST http://127.0.0.1:5000/api/homework HTTP/1.1
-content-type: application/json
+# POST http://127.0.0.1:5000/api/homework HTTP/1.1
+# content-type: application/json
 
-{
-    "name": "tarea Dan Perez"
-}
+# {
+#     "name": "tarea Dan Perez"
+# }
 
 
 
@@ -28,3 +28,8 @@ content-type: application/json
 #     "file_name": "my_file.py",
 #     "file_url": "https://firebasestorage.googleapis.com/v0/b/code-detector-c5694.appspot.com/o/python_codes%2Ffile_01.py?alt=media&token=03ff3039-0d1a-4289-a2c2-dde11172f8fe"
 # }
+
+
+
+# Get all submissions of a homework
+GET http://127.0.0.1:5000/api/homework/VOoS30fvywYfrezeXjwl/submissions
