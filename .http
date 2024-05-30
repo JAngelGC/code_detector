@@ -1,7 +1,7 @@
 
 
 # get submission similarity
-# GET http://127.0.0.1:5000/api/submission/KvuiiiD35noKAZKXd6KB/VOoS30fvywYfrezeXjwl
+GET http://127.0.0.1:5000/api/submission/VjjdZMVLdRsxzDJW20ox/VOoS30fvywYfrezeXjwl
 
 
 # get all homeworks
@@ -23,13 +23,13 @@
 # content-type: application/json
 
 # {
-#     "author": "Angel",
+#     "author": "ANGEL EL MERO MERO",
 #     "homework_id": "VOoS30fvywYfrezeXjwl",
-#     "file_name": "my_file.py",
+#     "file_name": "angel.py",
 #     "file_url": "https://firebasestorage.googleapis.com/v0/b/code-detector-c5694.appspot.com/o/python_codes%2Ffile_01.py?alt=media&token=03ff3039-0d1a-4289-a2c2-dde11172f8fe"
 # }
 
 
 
-# Get all submissions of a homework
-GET http://127.0.0.1:5000/api/homework/VOoS30fvywYfrezeXjwl/submissions
+# # Get all submissions of a homework
+# GET http://127.0.0.1:5000/api/homework/VOoS30fvywYfrezeXjwl/submissions

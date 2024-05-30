@@ -22,6 +22,135 @@ CORS(tasks)
 def get_submission_similarity(submission_id, homework_id):
     """
     """
+    submissions_max_sim_ref = db.collection("submssion_max_similarity")
+    query_ref = submissions_max_sim_ref.where(filter=FieldFilter("id", "==", submission_id))
+
+    query_ref = query_ref.get()
+    sub_simi_dict = query_ref[0].to_dict()    
+    
+    
+    
+    return jsonify({
+        "message": "Submission similarity retrieved successfully",
+        "submission_similarity": sub_simi_dict
+    }), 201
+
+# Post a subbmission
+@tasks.route('/submission', methods=['POST'])
+def post_submission():
+    try:
+        if not request.json:
+            abort(400)
+        
+        file_content: str = read_python_file(request.json["file_url"])
+        fingerprint = get_fingerprint(file_content)
+
+        homework_sub = {
+            "author": request.json["author"],
+            "homework_id": request.json["homework_id"],
+            "file_name": request.json["file_name"],
+            "file_url": request.json["file_url"],
+            "fingerprint": jsonify_fingerprint(fingerprint)
+        }
+
+        update_time, submission_ref = db.collection("homework_submission").add(homework_sub)
+
+        # Store max similarity
+        post_max_similarity(submission_ref.id, request.json["homework_id"])
+    
+        return jsonify({
+            "message": "Homework submission saved successfully",
+            "submission_id": submission_ref.id
+        }), 201
+    
+    except Exception as e:
+        return jsonify({"error": str(e)}), 500
+
+# Create a homework
+@tasks.route('/homework', methods=['POST'])
+def post_homework():
+
+    try:
+        if not request.json:
+            abort(400)
+
+        homework = {
+            "name": request.json["name"]
+        }
+
+        update_time, hw_ref = db.collection("homework").add(homework)
+    
+        return jsonify({
+            "message": "Homework created successfully",
+            "homework_id": hw_ref.id
+        }), 201
+    
+    except Exception as e:
+        return jsonify({"error": str(e)}), 500
+
+# Get all homeworks
+@tasks.route('/homework', methods=['GET'])
+def get_homeworks():
+    """
+    """
+    try:
+        homeworks_ref = db.collection("homework").get()
+
+        homeworks = []
+
+        for hw in homeworks_ref:
+            hw_dict: Dict = hw.to_dict()
+            hw_dict["homework_id"] = hw.id
+            homeworks.append(hw_dict)
+
+        return jsonify({
+                "message": "Homeworks retrieved successfully",
+                "homeworks": homeworks
+            }), 201
+    
+    except Exception as e:
+        return jsonify({"error": str(e)}), 500
+
+# Get all submissions of a homework
+@tasks.route('/homework/<string:homework_id>/submissions', methods=['GET'])
+def get_homework_submissions(homework_id):
+    """
+    """
+    try:
+        submissions_ref = db.collection("homework_submission")
+        query_ref = submissions_ref.where(filter=FieldFilter("homework_id", "==", homework_id))
+        query_ref = query_ref.get()
+
+        
+        
+        submissions = []
+        for doc in query_ref:
+            doc_dict = doc.to_dict()
+            sub = {
+                "id": doc.id,
+                "author": doc_dict["author"],
+                "filename": doc_dict["file_name"],
+                "similarityStatus": 76,
+            }
+            submissions.append(sub)
+        # print(submissions)
+
+        return jsonify({
+                    "message": "Submissions retrieved successfully",
+                    "submissions": submissions
+                }), 201
+    
+    except Exception as e:
+        return jsonify({"error": str(e)}), 500
+
+
+
+
+
+
+def post_max_similarity(submission_id, homework_id):
+    """
+    """
     # Create a reference to the homework collection
     submissions_ref = db.collection("homework_submission")
 
@@ -99,107 +228,14 @@ def get_submission_similarity(submission_id, homework_id):
                                       fp["position"]["col_offset"],
                                       fp["position"]["end_col_offset"])
                     match.submissionB.append(kposition)
+    
 
-            
     submission_similarity = SubmissionSimilarity(submission_document.id, max_similarity, 
-                                                 submission_a, submission_b,
-                                                 matches)
+                                                submission_a, submission_b,
+                                                matches)
     
-    return jsonify(submission_similarity.to_json()), 201
-
-# Post a subbmission
-@tasks.route('/submission', methods=['POST'])
-def post_submission():
-    try:
-        if not request.json:
-            abort(400)
-        
-        file_content: str = read_python_file(request.json["file_url"])
-        fingerprint = get_fingerprint(file_content)
-
-        homework_sub = {
-            "author": request.json["author"],
-            "homework_id": request.json["homework_id"],
-            "file_name": request.json["file_name"],
-            "file_url": request.json["file_url"],
-            "fingerprint": jsonify_fingerprint(fingerprint)
-        }
-
-        update_time, hw_ref = db.collection("homework_submission").add(homework_sub)
     
-        return jsonify({
-            "message": "Homework submission saved successfully",
-            "submission_id": hw_ref.id
-        }), 201
-    
-    except Exception as e:
-        return jsonify({"error": str(e)}), 500
-
-# Create a homework
-@tasks.route('/homework', methods=['POST'])
-def post_homework():
-
-    try:
-        if not request.json:
-            abort(400)
-
-        homework = {
-            "name": request.json["name"]
-        }
-
-        update_time, hw_ref = db.collection("homework").add(homework)
-    
-        return jsonify({
-            "message": "Homework created successfully",
-            "homework_id": hw_ref.id
-        }), 201
-    
-    except Exception as e:
-        return jsonify({"error": str(e)}), 500
-
-# Get all homeworks
-@tasks.route('/homework', methods=['GET'])
-def get_homeworks():
-    """
-    """
-    try:
-        homeworks_ref = db.collection("homework").get()
-
-        homeworks = []
-
-        for hw in homeworks_ref:
-            hw_dict: Dict = hw.to_dict()
-            hw_dict["homework_id"] = hw.id
-            homeworks.append(hw_dict)
-
-        return jsonify({
-                "message": "Homeworks retrieved successfully",
-                "homeworks": homeworks
-            }), 201
-    
-    except Exception as e:
-        return jsonify({"error": str(e)}), 500
-
-# Get all submissions of a homework
-@tasks.route('/homework/<string:homework_id>/submissions', methods=['GET'])
-def get_homework_submissions(homework_id):
-    """
-    """
-    try:
-        submissions_ref = db.collection("homework_submission")
-        query_ref = submissions_ref.where(filter=FieldFilter("homework_id", "==", homework_id))
-        query_ref = query_ref.get()
-        submissions = [doc.to_dict() for doc in query_ref]
-        # print(submissions)
-
-        return jsonify({
-                    "message": "Homeworks retrieved successfully",
-                    "homeworks": submissions
-                }), 201
-    
-    except Exception as e:
-        return jsonify({"error": str(e)}), 500
-
+    update_time, hw_ref = db.collection("submssion_max_similarity").add(submission_similarity.to_json())
 
 
 
