@@ -3,6 +3,9 @@ from app.utils.kgram import generate_kgrams, hash_kgrams
 from app.utils.ast_node import Ast_node
 import ast
 
+K = 5
+T = 7
+
 def winnowing(kgram_hashList: List[Ast_node], k: int):
     """
     For kgrams, it returns a list of its hashes
@@ -17,8 +20,7 @@ def winnowing(kgram_hashList: List[Ast_node], k: int):
     kgram_hash_index = [{'hash': kgram_hash, 'idx': idx} for idx, kgram_hash in enumerate(kgram_hashList)]
 
     # Generate windows
-    t = 5
-    kgram_hash_windows = generate_windows(kgram_hash_index, t, k)
+    kgram_hash_windows = generate_windows(kgram_hash_index, T, k)
 
 
     # Get fingerprint
@@ -84,14 +86,13 @@ def get_fingerprint(data: str) -> List[Ast_node]:
     ast_nodes: List[Ast_node] = Ast_node.get_children(ast_tree, [])
 
     # Generate kgrams    
-    k: int = 3
-    kgrams: List[List[Ast_node]] = generate_kgrams(ast_nodes, k)
+    kgrams: List[List[Ast_node]] = generate_kgrams(ast_nodes, K)
 
     # Hash kgrams
     hashed_kgrams: List[Ast_node] = hash_kgrams(kgrams)
 
     # Get fingerprint
-    fingerprint: List[Ast_node] = winnowing(hashed_kgrams, k)
+    fingerprint: List[Ast_node] = winnowing(hashed_kgrams, K)
 
     return fingerprint
 

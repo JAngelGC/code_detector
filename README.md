@@ -10,6 +10,17 @@ source venv/bin/activate
 python3 run.py
 ```
 
+# Run tests
+### Add project to pythonpath
+```
+export PYTHONPATH="/home/angelg/Documents/school/code_detector:${PYTHONPATH}"
+```
+
+### Execute test
+```
+python3 app/tests/test_dolos.py
+```
+
 ----------------------------------
 ------------------------------------
 

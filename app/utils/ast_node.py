@@ -29,6 +29,10 @@ class Ast_node:
 
     @staticmethod
     def get_children(tree, ast_nodes) -> List['Ast_node']:
+
+        if tree == None:
+            return
+
         node_name = tree.__class__.__name__
         if node_name != "Module":
             current_node = Ast_node(node_name, tree.lineno, tree.end_lineno, tree.col_offset, tree.end_col_offset)
