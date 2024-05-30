@@ -74,10 +74,10 @@ def hash_kgrams(kgrams: List[List[Ast_node]]) -> List[Ast_node]:
             if i == 0:
                 # First element of kgram
                 lineno = kgram[i].lineno
-                end_lineno = kgram[i].end_lineno
-            if i == len(kgram) - 1:
-                # Last element of kgram
                 col_offset = kgram[i].col_offset
+            if i == len(kgram) - 1:
+                # Last element of kgram'
+                end_lineno = kgram[i].end_lineno
                 end_col_offset = kgram[i].end_col_offset
             
             node_names.append(kgram[i].get_hash())

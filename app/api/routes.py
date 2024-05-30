@@ -38,9 +38,12 @@ def get_submission_similarity(submission_id, homework_id):
     query_ref = query_ref.get()
     submissions = [doc for doc in query_ref]
 
+    # Read code from storage
+    submission_a_content: str = read_python_file(temp_dict["file_url"])
+
 
     max_similarity: int = 0
-    submission_a: Submission = Submission(submission_document.id, submission_dict.file_name, "", submission_dict.author)
+    submission_a: Submission = Submission(submission_document.id, submission_dict.file_name, submission_a_content, submission_dict.author)
     submission_b = None
     submission_b_dict = None
 
@@ -56,50 +59,51 @@ def get_submission_similarity(submission_id, homework_id):
 
         if similarity > max_similarity:
             max_similarity = similarity
-            submission_b = Submission(sub.id, current_submission.file_name, "", current_submission.author)
+
+            # Read code from storage
+            submission_b_content: str = read_python_file(temp_dict["file_url"])
+            
+            submission_b = Submission(sub.id, current_submission.file_name, submission_b_content, current_submission.author)
             submission_b_dict = current_submission
 
     if max_similarity == 0:
         return jsonify({"message": "No homeworks to compare"}), 201
-    
-    matches: List[KGramHashMatch] = []
-    set_a = set()
-    for fp in submission_dict.fingerprint:
-        if fp["hash"] not in set_a:
-            set_a.add(fp["hash"])
-            kposition = KGramPosition(fp["position"]["lineno"],
-                                      fp["position"]["end_lineno"],
-                                      fp["position"]["col_offset"],
-                                      fp["position"]["end_col_offset"])
-            kgram_match = KGramHashMatch(fp["hash"], [kposition], [])
-            matches.append(kgram_match)
-        else:
-            for match in matches:
-                if fp["hash"] == match.hash:
-                    kposition = KGramPosition(fp["position"]["lineno"],
-                                      fp["position"]["end_lineno"],
-                                      fp["position"]["col_offset"],
-                                      fp["position"]["end_col_offset"])
-                    match.submissionA.append(kposition)
-    
-    for fp in submission_b_dict.fingerprint:
-        if fp["hash"] not in set_a:
-            set_a.add(fp["hash"])
-            kposition = KGramPosition(fp["position"]["lineno"],
-                                      fp["position"]["end_lineno"],
-                                      fp["position"]["col_offset"],
-                                      fp["position"]["end_col_offset"])
-            kgram_match = KGramHashMatch(fp["hash"], [], [kposition])
-            matches.append(kgram_match)
-        else:
-            for match in matches:
-                if fp["hash"] == match.hash:
-                    kposition = KGramPosition(fp["position"]["lineno"],
-                                      fp["position"]["end_lineno"],
-                                      fp["position"]["col_offset"],
-                                      fp["position"]["end_col_offset"])
-                    match.submissionB.append(kposition)
 
+   ## For Submission A, group all same matches Positions
+    dict_hash_pos_a = {}
+
+    for fp in submission_dict.fingerprint:
+        if fp["hash"] not in dict_hash_pos_a:
+            dict_hash_pos_a[fp["hash"]] = []
+
+        kposition = KGramPosition(fp["position"]["lineno"],
+                                      fp["position"]["col_offset"],
+                                      fp["position"]["end_lineno"],
+                                      fp["position"]["end_col_offset"])
+        
+        dict_hash_pos_a[fp["hash"]].append(kposition)
+
+    ## For Submission B, group all same matches Positions
+    dict_hash_pos_b = {}
+
+    for fp in submission_b_dict.fingerprint:
+        if fp["hash"] not in dict_hash_pos_b:
+            dict_hash_pos_b[fp["hash"]] = []
+
+        kposition = KGramPosition(fp["position"]["lineno"],
+                                      fp["position"]["col_offset"],
+                                      fp["position"]["end_lineno"],
+                                      fp["position"]["end_col_offset"])
+        
+        dict_hash_pos_b[fp["hash"]].append(kposition)
+
+    ## For Submission A, get matching kgrams from B
+    matches: List[KGramHashMatch] = []
+
+    for hash in dict_hash_pos_a:
+        if hash in dict_hash_pos_b:
+            kgram_match = KGramHashMatch(hash, dict_hash_pos_a[hash], dict_hash_pos_b[hash])
+            matches.append(kgram_match)
             
     submission_similarity = SubmissionSimilarity(submission_document.id, max_similarity, 
                                                  submission_a, submission_b,
@@ -189,12 +193,22 @@ def get_homework_submissions(homework_id):
         submissions_ref = db.collection("homework_submission")
         query_ref = submissions_ref.where(filter=FieldFilter("homework_id", "==", homework_id))
         query_ref = query_ref.get()
-        submissions = [doc.to_dict() for doc in query_ref]
+        
+        submissions = []
+        for doc in query_ref:
+            doc_dict = doc.to_dict()
+            sub = {
+                "id": doc.id,
+                "author": doc_dict["author"],
+                "filename": doc_dict["file_name"],
+                "similarityStatus": 76,
+            }
+            submissions.append(sub)
         # print(submissions)
 
         return jsonify({
-                    "message": "Homeworks retrieved successfully",
-                    "homeworks": submissions
+                    "message": "Submissions retrieved successfully",
+                    "submissions": submissions
                 }), 201
     
     except Exception as e:

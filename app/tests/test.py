@@ -13,7 +13,6 @@ file_paths: List[str] = get_absolute_file_path()
 file_paths.sort()
 
 def test_similarity():
-    
     # Get similarity between files
     similarity: float = match_files(file_paths[0], file_paths[1])
     print(f"Similarity is: {similarity}%")

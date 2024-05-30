@@ -71,11 +71,14 @@ def get_fingerprint(data: str) -> List[Ast_node]:
 
     """
     # Read file
-    # with open(file_path, "r") as f:
+    # with open(data, "r") as f:
     #     data: str = f.read()
 
     # Get ast tree
     ast_tree: ast = Ast_node.get_ast(data)
+
+    #print(ast.dump(ast_tree, include_attributes=True, indent="\t"))
+    #print(ast_tree.body[3].lineno)
     
     # Get ast nodes
     ast_nodes: List[Ast_node] = Ast_node.get_children(ast_tree, [])
