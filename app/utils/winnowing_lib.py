@@ -4,7 +4,7 @@ from app.utils.ast_node import Ast_node
 import ast
 
 K = 5
-T = 7
+T = 5
 
 def winnowing(kgram_hashList: List[Ast_node], k: int):
     """

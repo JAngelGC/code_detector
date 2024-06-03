@@ -26,12 +26,13 @@ def get_submission_similarity(submission_id, homework_id):
     query_ref = submissions_max_sim_ref.where(filter=FieldFilter("id", "==", submission_id))
 
     query_ref = query_ref.get()
-    sub_simi_dict = query_ref[0].to_dict()    
+    sub_simi_dict = query_ref[0].to_dict()
     
     return jsonify({
         "message": "Submission similarity retrieved successfully",
         "submission_similarity": sub_simi_dict
     }), 201
+
 
 # Post a subbmission
 @tasks.route('/submission', methods=['POST'])
@@ -42,10 +43,11 @@ def post_submission():
         
         file_content: str = read_python_file(request.json["file_url"])
         fingerprint = get_fingerprint(file_content)
+        homework_id: str = request.json["homework_id"]
 
         homework_sub = {
             "author": request.json["author"],
-            "homework_id": request.json["homework_id"],
+            "homework_id": homework_id,
             "file_name": request.json["file_name"],
             "file_url": request.json["file_url"],
             "fingerprint": jsonify_fingerprint(fingerprint)
@@ -53,9 +55,17 @@ def post_submission():
 
         update_time, submission_ref = db.collection("homework_submission").add(homework_sub)
 
-        # Store max similarity
-        post_max_similarity(submission_ref.id, request.json["homework_id"])
-    
+        # Delete all documents in collection and make a new entry for each homework
+        submissions_sim_ref = db.collection("submssion_max_similarity")
+        delete_collection(submissions_sim_ref)
+
+        # Fill homework_submission collection with new entries
+        submissions_ref = db.collection("homework_submission")
+        query_ref = submissions_ref.where(filter=FieldFilter("homework_id", "==", homework_id))
+        query_ref = query_ref.get()
+        for doc in query_ref:
+            post_max_similarity(doc.id, homework_id)
+
         return jsonify({
             "message": "Homework submission saved successfully",
             "submission_id": submission_ref.id
@@ -63,6 +73,7 @@ def post_submission():
     
     except Exception as e:
         return jsonify({"error": str(e)}), 500
+
 
 # Create a homework
 @tasks.route('/homework', methods=['POST'])
@@ -77,7 +88,7 @@ def post_homework():
         }
 
         update_time, hw_ref = db.collection("homework").add(homework)
-    
+
         return jsonify({
             "message": "Homework created successfully",
             "homework_id": hw_ref.id
@@ -85,6 +96,7 @@ def post_homework():
     
     except Exception as e:
         return jsonify({"error": str(e)}), 500
+
 
 # Get all homeworks
 @tasks.route('/homework', methods=['GET'])
@@ -109,6 +121,7 @@ def get_homeworks():
     except Exception as e:
         return jsonify({"error": str(e)}), 500
 
+
 # Get all submissions of a homework
 @tasks.route('/homework/<string:homework_id>/submissions', methods=['GET'])
 def get_homework_submissions(homework_id):
@@ -118,18 +131,26 @@ def get_homework_submissions(homework_id):
         submissions_ref = db.collection("homework_submission")
         query_ref = submissions_ref.where(filter=FieldFilter("homework_id", "==", homework_id))
         query_ref = query_ref.get()
+        submissions_sim_ref = db.collection("submssion_max_similarity")
 
         submissions = []
         for doc in query_ref:
+
+            max_sim = "NA"
+            max_sub_ref = submissions_sim_ref.where(filter=FieldFilter("id", "==", doc.id)).get()
+            if len(max_sub_ref):
+                max_sim = max_sub_ref[0].to_dict()["similarity"]
+
+            print(f" max sim is: {max_sim}")
+                
             doc_dict = doc.to_dict()
             sub = {
                 "id": doc.id,
                 "author": doc_dict["author"],
                 "filename": doc_dict["file_name"],
-                "similarityStatus": 76,
+                "similarityStatus": max_sim,
             }
             submissions.append(sub)
-        # print(submissions)
 
         return jsonify({
                     "message": "Submissions retrieved successfully",
@@ -239,3 +260,11 @@ def post_max_similarity(submission_id, homework_id):
 
 
 
+def delete_collection(coll_ref):
+    docs = coll_ref.list_documents()
+    deleted = 0
+
+    for doc in docs:
+        print(f"Deleting doc {doc.id} => {doc.get().to_dict()}")
+        doc.delete()
+        deleted = deleted + 1

@@ -18,17 +18,28 @@
 
 
 # Post a submission
-# POST http://127.0.0.1:5000/api/submission HTTP/1.1
-# content-type: application/json
+POST http://127.0.0.1:5000/api/submission HTTP/1.1
+content-type: application/json
 
-# {
-#     "author": "fulanito",
-#     "homework_id": "6jzHVyU8Nm5hcCmp2las",
-#     "file_name": "angel.py",
-#     "file_url": "https://firebasestorage.googleapis.com/v0/b/code-detector-c5694.appspot.com/o/python_codes%2Ffile_01.py?alt=media&token=03ff3039-0d1a-4289-a2c2-dde11172f8fe"
-# }
+{
+    "author": "fulanito",
+    "homework_id": "WRrrdPUO15nest6xEHsW",
+    "file_name": "angel.py",
+    "file_url": "https://firebasestorage.googleapis.com/v0/b/code-detector-c5694.appspot.com/o/python_codes%2Ffile_01.py?alt=media&token=03ff3039-0d1a-4289-a2c2-dde11172f8fe"
+}
 
 
 
 # # Get all submissions of a homework
 # GET http://127.0.0.1:5000/api/homework/6jzHVyU8Nm5hcCmp2las/submissions
+
+
+
+
+
+
+
+
+# GET http://127.0.0.1:5000/api/submission/OBWStLzD8ZhJuNxydhtT/us0MOO3Nz28iHhiDwifD
+
+# GET http://127.0.0.1:5000/api/homework/WRrrdPUO15nest6xEHsW/submissions
