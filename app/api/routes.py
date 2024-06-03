@@ -1,7 +1,7 @@
 from flask import Blueprint, jsonify, request, abort
 from google.cloud.firestore_v1.base_query import FieldFilter
 from typing import List, Dict
-from app.utils.matcher import match_fingerprints, get_fingerprint
+from app.utils.matcher import match_fingerprints, get_fingerprint, match_files
 from app.files.files import get_absolute_file_path
 from flask_cors import CORS
 from app.api.firestore import db
@@ -50,6 +50,7 @@ def post_submission():
             "homework_id": homework_id,
             "file_name": request.json["file_name"],
             "file_url": request.json["file_url"],
+            "content": read_python_file(request.json["content"]),
             "fingerprint": jsonify_fingerprint(fingerprint)
         }
 
@@ -161,6 +162,54 @@ def get_homework_submissions(homework_id):
         return jsonify({"error": str(e)}), 500
 
 
+# Generates a distance matrix of all submissions
+@tasks.route('/homework/<string:homework_id>/distance_matrix', methods=['GET'])
+def get_distance_maatrix(homework_id):
+
+    try:
+        axis = []
+        distance_matrix = []
+
+        submissions_max_sim_ref = db.collection("homework_submission")
+        query_ref = submissions_max_sim_ref.where(filter=FieldFilter("homework_id", "==", homework_id)).get()
+        for doc in query_ref:
+            sub_sim_dict = doc.to_dict()
+            axis.append({
+                "file_name": sub_sim_dict["file_name"],
+                "file_url" : sub_sim_dict["file_url"],
+                "author" : sub_sim_dict["author"],
+                "id" : doc.id,
+            })
+            
+        for code_out in axis:
+            row = []
+            for code_in in axis:
+                if code_out["file_name"] == code_in["file_name"]:
+                    row.append(-1)
+                else:
+                    sim = match_files(read_python_file(code_out["file_url"]), 
+                                      read_python_file(code_in["file_url"]))
+                    row.append(sim)
+            distance_matrix.append(row)
+
+        
+        new_axis = []
+        for code in axis:
+            new_axis.append({
+                "file_name": code["file_name"],
+                "author": code["author"],
+                "id": code["id"],
+            })
+        
+
+        return jsonify({
+            "message": "Distance matrix successfully retrieved",
+            "distance_matrix": distance_matrix,
+            "axis": new_axis
+        }), 201
+    
+    except Exception as e:
+        return jsonify({"error": str(e)}), 500
 
 
 
@@ -254,7 +303,6 @@ def post_max_similarity(submission_id, homework_id):
     submission_similarity = SubmissionSimilarity(submission_document.id, max_similarity, 
                                                  submission_a, submission_b,
                                                  matches)
-
     
     update_time, hw_ref = db.collection("submssion_max_similarity").add(submission_similarity.to_json())
 
