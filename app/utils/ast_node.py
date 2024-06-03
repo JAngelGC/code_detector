@@ -37,9 +37,6 @@ class Ast_node:
         if node_name != "Module":
             current_node = Ast_node(node_name, tree.lineno, tree.end_lineno, tree.col_offset, tree.end_col_offset)
             ast_nodes.append(current_node)
-        else:
-            current_node = Ast_node(node_name, 0, 0, 0, 0)
-            ast_nodes.append(current_node)
 
         if node_name == "Constant":
             return    
