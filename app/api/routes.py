@@ -50,15 +50,14 @@ def post_submission():
             "homework_id": homework_id,
             "file_name": request.json["file_name"],
             "file_url": request.json["file_url"],
-            "content": read_python_file(request.json["content"]),
+            "content": read_python_file(request.json["file_url"]),
             "fingerprint": jsonify_fingerprint(fingerprint)
         }
-
         update_time, submission_ref = db.collection("homework_submission").add(homework_sub)
-
         # Delete all documents in collection and make a new entry for each homework
         submissions_sim_ref = db.collection("submssion_max_similarity")
         delete_collection(submissions_sim_ref)
+
 
         # Fill homework_submission collection with new entries
         submissions_ref = db.collection("homework_submission")
