@@ -44,6 +44,18 @@ class Ast_node:
         if hasattr(tree, "value"):
             Ast_node.get_children(tree.value, ast_nodes)
 
+        if hasattr(tree, "elts"):
+            for el in tree.elts:
+                Ast_node.get_children(el, ast_nodes)
+
+        if hasattr(tree, "args") and node_name != "FunctionDef":
+            for arg in tree.args:
+                Ast_node.get_children(arg, ast_nodes)
+
+        if hasattr(tree, "ops"):
+            for op in tree.ops:
+                Ast_node.get_children(op, ast_nodes)
+
         if hasattr(tree, "test"):
             Ast_node.get_children(tree.test, ast_nodes)
         

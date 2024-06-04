@@ -8,7 +8,8 @@ from app.api.firestore import db
 from app.api.misc import jsonify_fingerprint, read_python_file
 from app.api.interfaces import (Submission, KGramPosition, KGramHashMatch,
                                 SubmissionSimilarity, SubmissionTable)
-
+import astpretty
+import ast
 
 # Store all test files
 file_paths: List[str] = get_absolute_file_path()
@@ -42,6 +43,9 @@ def post_submission():
             abort(400)
         
         file_content: str = read_python_file(request.json["file_url"])
+        astpretty.pprint(ast.parse(file_content))
+
+
         fingerprint = get_fingerprint(file_content)
         homework_id: str = request.json["homework_id"]
 

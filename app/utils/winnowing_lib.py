@@ -3,8 +3,8 @@ from app.utils.kgram import generate_kgrams, hash_kgrams
 from app.utils.ast_node import Ast_node
 import ast
 
-K = 5
-T = 5
+K = 6
+T = 8
 
 def winnowing(kgram_hashList: List[Ast_node], k: int):
     """
@@ -12,7 +12,7 @@ def winnowing(kgram_hashList: List[Ast_node], k: int):
 
     Input:
         kgrams: List of kgrams
-    
+    :
     Returns:
         hashed_grams: List of kgram hashes
     """
