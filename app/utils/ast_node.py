@@ -3,6 +3,8 @@
 import ast
 from typing import List
 
+cmpop = ["Eq", "NotEq", "Lt", "LtE", "Gt", "GtE", "Is", "IsNot", "In", "NotIn"]
+
 class Ast_node:
     def __init__(self, hash: str, lineno: int, end_lineno: int, col_offset: int, end_col_offset: int):
         self.hash = hash
@@ -34,12 +36,17 @@ class Ast_node:
             return
 
         node_name = tree.__class__.__name__
+        if node_name in cmpop:
+            return 
+
         if node_name != "Module":
             current_node = Ast_node(node_name, tree.lineno, tree.end_lineno, tree.col_offset, tree.end_col_offset)
             ast_nodes.append(current_node)
-
+        
         if node_name == "Constant":
-            return    
+            current_node = Ast_node("Constant", tree.lineno, tree.end_lineno, tree.col_offset, tree.end_col_offset)
+            ast_nodes.append(current_node)
+            return 
         
         if hasattr(tree, "value"):
             Ast_node.get_children(tree.value, ast_nodes)

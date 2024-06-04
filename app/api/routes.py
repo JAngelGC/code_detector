@@ -8,8 +8,6 @@ from app.api.firestore import db
 from app.api.misc import jsonify_fingerprint, read_python_file
 from app.api.interfaces import (Submission, KGramPosition, KGramHashMatch,
                                 SubmissionSimilarity, SubmissionTable)
-import astpretty
-import ast
 
 # Store all test files
 file_paths: List[str] = get_absolute_file_path()
@@ -43,7 +41,6 @@ def post_submission():
             abort(400)
         
         file_content: str = read_python_file(request.json["file_url"])
-        astpretty.pprint(ast.parse(file_content))
 
 
         fingerprint = get_fingerprint(file_content)
@@ -54,9 +51,11 @@ def post_submission():
             "homework_id": homework_id,
             "file_name": request.json["file_name"],
             "file_url": request.json["file_url"],
-            "content": read_python_file(request.json["file_url"]),
+            "content": file_content,
             "fingerprint": jsonify_fingerprint(fingerprint)
         }
+
+        print("siuuuuuuuuuuuuuuu")
         update_time, submission_ref = db.collection("homework_submission").add(homework_sub)
         # Delete all documents in collection and make a new entry for each homework
         submissions_sim_ref = db.collection("submssion_max_similarity")
@@ -142,7 +141,7 @@ def get_homework_submissions(homework_id):
 
             max_sim = "NA"
             max_sub_ref = submissions_sim_ref.where(filter=FieldFilter("id", "==", doc.id)).get()
-            if len(max_sub_ref):
+            if len(max_sub_ref) > 0:
                 max_sim = max_sub_ref[0].to_dict()["similarity"]
 
             print(f" max sim is: {max_sim}")
@@ -152,7 +151,7 @@ def get_homework_submissions(homework_id):
                 "id": doc.id,
                 "author": doc_dict["author"],
                 "filename": doc_dict["file_name"],
-                "similarityStatus": max_sim,
+                "similarityStatus": round(max_sim, 2),
             }
             submissions.append(sub)
 
@@ -170,6 +169,7 @@ def get_homework_submissions(homework_id):
 def get_distance_maatrix(homework_id):
 
     try:
+        print("working on distance matrix")
         axis = []
         distance_matrix = []
 
@@ -182,7 +182,10 @@ def get_distance_maatrix(homework_id):
                 "file_url" : sub_sim_dict["file_url"],
                 "author" : sub_sim_dict["author"],
                 "id" : doc.id,
+                "content": sub_sim_dict["content"]
             })
+        
+        
             
         for code_out in axis:
             row = []
@@ -190,10 +193,12 @@ def get_distance_maatrix(homework_id):
                 if code_out["id"] == code_in["id"]:
                     row.append(-1)
                 else:
-                    sim = match_files(read_python_file(code_out["file_url"]), 
-                                      read_python_file(code_in["file_url"]))
+                    sim = match_files(code_out["content"], code_in["content"])
+                    print(sim)
                     row.append(sim)
             distance_matrix.append(row)
+
+        
 
         
         new_axis = []
