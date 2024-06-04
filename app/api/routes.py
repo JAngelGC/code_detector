@@ -187,7 +187,7 @@ def get_distance_maatrix(homework_id):
         for code_out in axis:
             row = []
             for code_in in axis:
-                if code_out["file_name"] == code_in["file_name"]:
+                if code_out["id"] == code_in["id"]:
                     row.append(-1)
                 else:
                     sim = match_files(read_python_file(code_out["file_url"]), 
@@ -316,6 +316,5 @@ def delete_collection(coll_ref):
     deleted = 0
 
     for doc in docs:
-        print(f"Deleting doc {doc.id} => {doc.get().to_dict()}")
         doc.delete()
         deleted = deleted + 1
