@@ -199,7 +199,7 @@ def get_distance_maatrix(homework_id):
         new_axis = []
         for code in axis:
             new_axis.append({
-                "file_name": code["file_name"],
+                "filename": code["file_name"],
                 "author": code["author"],
                 "id": code["id"],
             })
