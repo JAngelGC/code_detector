@@ -207,8 +207,11 @@ def get_distance_maatrix(homework_id):
 
         return jsonify({
             "message": "Distance matrix successfully retrieved",
-            "distance_matrix": distance_matrix,
-            "axis": new_axis
+            "matrix": {
+                    "distance_matrix": distance_matrix,
+                    "axis": new_axis
+            }
+            
         }), 201
     
     except Exception as e:
