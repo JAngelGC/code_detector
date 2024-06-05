@@ -59,7 +59,12 @@ def post_submission():
         update_time, submission_ref = db.collection("homework_submission").add(homework_sub)
         # Delete all documents in collection and make a new entry for each homework
         submissions_sim_ref = db.collection("submssion_max_similarity")
-        delete_collection(submissions_sim_ref)
+        query  = submissions_sim_ref.where("homeworkId", "==", homework_id)
+
+        docs = query.get()
+
+        for doc in docs:
+            doc.reference.delete()
 
 
         # Fill homework_submission collection with new entries
@@ -113,6 +118,38 @@ def get_homeworks():
 
         for hw in homeworks_ref:
             hw_dict: Dict = hw.to_dict()
+
+            submissions_ref = db.collection("homework_submission")
+            query_ref = submissions_ref.where(filter=FieldFilter("homework_id", "==", hw.id))
+            query_ref = query_ref.get()
+
+            hw_dict["submissions"] = len(query_ref)
+
+            hw_dict["highSimilarity"] = 0
+            hw_dict["mediumSimilarity"] = 0
+            hw_dict["lowSimilarity"] = 0
+            hw_dict["notSimilarity"] = 0
+
+            for submission in query_ref:
+
+                simmilarity_ref = db.collection("submssion_max_similarity")
+                query_ref = simmilarity_ref.where(filter=FieldFilter("id", "==", submission.id))
+                query_ref = query_ref.get()
+
+                if(len(query_ref) != 1):
+                    continue
+
+                simmilarity_dict: Dict = query_ref[0].to_dict()
+
+                if simmilarity_dict["similarity"] > 75:
+                    hw_dict["highSimilarity"] += 1
+                elif simmilarity_dict["similarity"] > 50:
+                    hw_dict["mediumSimilarity"] += 1
+                elif simmilarity_dict["similarity"] > 0:
+                    hw_dict["lowSimilarity"] += 1
+                else:
+                    hw_dict["notSimilarity"] += 1
+
             hw_dict["homework_id"] = hw.id
             homeworks.append(hw_dict)
 
@@ -313,16 +350,8 @@ def post_max_similarity(submission_id, homework_id):
             
     submission_similarity = SubmissionSimilarity(submission_document.id, max_similarity, 
                                                  submission_a, submission_b,
-                                                 matches)
+                                                 matches, homework_id)
     
     update_time, hw_ref = db.collection("submssion_max_similarity").add(submission_similarity.to_json())
 
 
-
-def delete_collection(coll_ref):
-    docs = coll_ref.list_documents()
-    deleted = 0
-
-    for doc in docs:
-        doc.delete()
-        deleted = deleted + 1

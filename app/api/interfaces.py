@@ -52,12 +52,13 @@ class KGramHashMatch():
 
 
 class SubmissionSimilarity():
-    def __init__(self, id: str, similarity: int, submissionA: Submission, submissionB: Submission, matches: List[KGramHashMatch]):
+    def __init__(self, id: str, homeworkId: str, similarity: int, submissionA: Submission, submissionB: Submission, matches: List[KGramHashMatch]):
         self.id = id
         self.similarity = similarity
         self.submissionA = submissionA
         self.submissionB = submissionB
         self.matches = matches
+        self.homeworkId = homeworkId
     
     def to_json(self):
         matches_ = [match.to_json() for match in self.matches]
@@ -68,6 +69,7 @@ class SubmissionSimilarity():
             "submissionA": self.submissionA.to_json(),
             "submissionB": self.submissionB.to_json(),
             "matches": matches_,
+            "homeworkId": self.homeworkId
         }
 
 
