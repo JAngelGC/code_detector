@@ -59,7 +59,7 @@ def post_submission():
         update_time, submission_ref = db.collection("homework_submission").add(homework_sub)
         # Delete all documents in collection and make a new entry for each homework
         submissions_sim_ref = db.collection("submssion_max_similarity")
-        query  = submissions_sim_ref.where("homeworkId", "==", homework_id)
+        query  = submissions_sim_ref.where(filter=FieldFilter("homeworkId", "==", homework_id))
 
         docs = query.get()
 
@@ -173,24 +173,34 @@ def get_homework_submissions(homework_id):
         query_ref = query_ref.get()
         submissions_sim_ref = db.collection("submssion_max_similarity")
 
+        print("Carlos")             
+
         submissions = []
         for doc in query_ref:
+
+
+            print("Carlos")
 
             max_sim = "NA"
             max_sub_ref = submissions_sim_ref.where(filter=FieldFilter("id", "==", doc.id)).get()
             if len(max_sub_ref) > 0:
-                max_sim = max_sub_ref[0].to_dict()["similarity"]
+                max_sim = round(max_sub_ref[0].to_dict()["similarity"], 2)
 
             print(f" max sim is: {max_sim}")
                 
             doc_dict = doc.to_dict()
+
+            print(doc_dict)
+
             sub = {
                 "id": doc.id,
                 "author": doc_dict["author"],
                 "filename": doc_dict["file_name"],
-                "similarityStatus": round(max_sim, 2),
+                "similarityStatus": max_sim
             }
             submissions.append(sub)
+
+        print(submissions)
 
         return jsonify({
                     "message": "Submissions retrieved successfully",
