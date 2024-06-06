@@ -55,8 +55,8 @@ def post_submission():
             "fingerprint": jsonify_fingerprint(fingerprint)
         }
 
-        print("siuuuuuuuuuuuuuuu")
         update_time, submission_ref = db.collection("homework_submission").add(homework_sub)
+
         # Delete all documents in collection and make a new entry for each homework
         submissions_sim_ref = db.collection("submssion_max_similarity")
         query  = submissions_sim_ref.where(filter=FieldFilter("homeworkId", "==", homework_id))
@@ -171,26 +171,17 @@ def get_homework_submissions(homework_id):
         submissions_ref = db.collection("homework_submission")
         query_ref = submissions_ref.where(filter=FieldFilter("homework_id", "==", homework_id))
         query_ref = query_ref.get()
-        submissions_sim_ref = db.collection("submssion_max_similarity")
-
-        print("Carlos")             
+        submissions_sim_ref = db.collection("submssion_max_similarity")         
 
         submissions = []
         for doc in query_ref:
-
-
-            print("Carlos")
 
             max_sim = "NA"
             max_sub_ref = submissions_sim_ref.where(filter=FieldFilter("id", "==", doc.id)).get()
             if len(max_sub_ref) > 0:
                 max_sim = round(max_sub_ref[0].to_dict()["similarity"], 2)
-
-            print(f" max sim is: {max_sim}")
                 
             doc_dict = doc.to_dict()
-
-            print(doc_dict)
 
             sub = {
                 "id": doc.id,
@@ -199,8 +190,6 @@ def get_homework_submissions(homework_id):
                 "similarityStatus": max_sim
             }
             submissions.append(sub)
-
-        print(submissions)
 
         return jsonify({
                     "message": "Submissions retrieved successfully",
@@ -216,7 +205,6 @@ def get_homework_submissions(homework_id):
 def get_distance_maatrix(homework_id):
 
     try:
-        print("working on distance matrix")
         axis = []
         distance_matrix = []
 
@@ -241,7 +229,6 @@ def get_distance_maatrix(homework_id):
                     row.append(-1)
                 else:
                     sim = match_files(code_out["content"], code_in["content"])
-                    print(sim)
                     row.append(sim)
             distance_matrix.append(row)
 

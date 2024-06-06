@@ -52,7 +52,7 @@ class KGramHashMatch():
 
 
 class SubmissionSimilarity():
-    def __init__(self, id: str, homeworkId: str, similarity: int, submissionA: Submission, submissionB: Submission, matches: List[KGramHashMatch]):
+    def __init__(self, id: str, similarity: int, submissionA: Submission, submissionB: Submission, matches: List[KGramHashMatch], homeworkId: str):
         self.id = id
         self.similarity = similarity
         self.submissionA = submissionA
